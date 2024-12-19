@@ -23,3 +23,7 @@ go.work.sum
 
 # env file
 .env
+
+# custom 
+build/usr/local/bin/webalert-service
+webalert-service.deb

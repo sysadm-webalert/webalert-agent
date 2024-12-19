@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+# Detener el servicio si está en ejecución
+systemctl stop webalert-agent || true
+
+# Deshabilitar el servicio
+systemctl disable webalert-agent || true

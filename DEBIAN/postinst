@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+# Habilitar el servicio
+systemctl enable webalert-agent
+
+# Iniciar el servicio
+systemctl start webalert-agent

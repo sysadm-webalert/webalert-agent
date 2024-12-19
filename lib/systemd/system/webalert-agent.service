@@ -1,0 +1,14 @@
+[Unit]
+Description=WebAlert Agent
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/webalert-agent
+Restart=always
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=webalert-agent
+
+[Install]
+WantedBy=multi-user.target

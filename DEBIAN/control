@@ -1,0 +1,7 @@
+Package: webalert-agent
+Version: 1.0
+Section: base
+Priority: optional
+Architecture: amd64
+Maintainer: victor.gz@sysadm.es
+Description: WebAlert Agent for monitoring websites and sending CPU, RAM and disk metrics.

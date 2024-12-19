@@ -1,0 +1,35 @@
+name: Build package
+run-name: "WebAlert agent: webalert-agent-latest.deb"
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '^1.23.2'
+      - name: Init modules
+        run: go mod init webalert-agent || true 
+      - name: Install dependencies
+        run: |
+          go get github.com/shirou/gopsutil/cpu
+          go get github.com/shirou/gopsutil/mem
+          go get github.com/shirou/gopsutil/disk
+          go mod tidy
+      - name: Permissions for the script
+        run: |
+          chmod 755 ./DEBIAN/postinst
+          chmod 755 ./DEBIAN/prerm
+      - name: Build the binary
+        run: go build -o ./usr/local/bin/webalert-agent main.go
+      - name: Build Debian package
+        run: dpkg-deb --build . webalert-agent-latest.deb
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: webalert-agent-latest.deb
+          path: webalert-agent-latest.deb
