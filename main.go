@@ -18,6 +18,14 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
+const (
+	contentType    = "application/json"
+	logDir         = "/var/log/webalert-agent/"
+	logFileName    = "agent.log"
+	configFilePath = "/etc/webalert-agent/config.json"
+	version        = "1.0.1"
+)
+
 // Struct collection for Config
 type Config struct {
 	Email    string   `json:"email"`
@@ -79,7 +87,7 @@ func getMetrics(siteName string) (*Metric, error) {
 		RAMUsage:  vmStat.UsedPercent,
 		DiskUsage: diskStat.UsedPercent,
 		SiteName:  siteName,
-		Version:   "1.0.0",
+		Version:   version,
 	}, nil
 }
 
@@ -104,8 +112,8 @@ func sendMetrics(config *Config, metrics *Metric) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("Accept", contentType)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -198,55 +206,45 @@ func obscureString(s string) string {
 	return s[:visibleChars] + strings.Repeat("*", obscured)
 }
 
-func main() {
+var logFile *os.File
+
+func initLog() {
 	// If the folder not exist, create
-	logDir := "/var/log/webalert-agent/"
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		log.Fatalf("Error creating log directory: %v", err)
 	}
-
 	// Configure the log file
-	logFile, err := os.OpenFile(filepath.Join(logDir, "agent.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile(filepath.Join(logDir, logFileName), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("Error opening log file: %v", err)
 	}
-	defer logFile.Close()
 	log.SetOutput(logFile)
+}
 
-	// Arguments definitions
-	mode := flag.String("m", "", "operation mode: cpu, disk, memory")
-	flag.Parse()
-
-	if *mode != "" {
-		var value float64
-		var err error
-
-		switch *mode {
-		case "cpu":
-			value, err = getCPUUsage()
-		case "disk":
-			value, err = getDiskUsage()
-		case "memory":
-			value, err = getMemoryUsage()
-		default:
-			log.Fatalf("unknown mode: %s", *mode)
-		}
-
-		if err != nil {
-			log.Printf("Error getting value: %v", err)
-		} else {
-			log.Printf("%s usage: %.2f%%", *mode, value) //Logging the values measured
-			fmt.Printf("%s usage: %.2f%%\n", *mode, value)
-		}
-		return
-	}
-
-	// Load the config file
-	config, err := loadConfig("/etc/webalert-agent/config.json")
+func executeMode(mode string) {
+	value, err := fetchMetric(mode)
 	if err != nil {
-		log.Fatalf("Error loading json config: %v", err)
+		log.Printf("Error getting value: %v", err)
+	} else {
+		log.Printf("%s usage: %.2f%%", mode, value)
+		fmt.Printf("%s usage: %.2f%%\n", mode, value)
 	}
+}
 
+func fetchMetric(mode string) (float64, error) {
+	switch mode {
+	case "cpu":
+		return getCPUUsage()
+	case "disk":
+		return getDiskUsage()
+	case "memory":
+		return getMemoryUsage()
+	default:
+		return 0, fmt.Errorf("unknown mode: %s", mode)
+	}
+}
+
+func runLoopAgent(config *Config) {
 	for {
 		for _, site := range config.SiteName {
 			metrics, err := getMetrics(site)
@@ -254,10 +252,8 @@ func main() {
 				log.Printf("Error getting metrics for site %s: %v", site, err)
 				continue
 			}
-			log.Printf("Getting metrics for %s: CPU: %.2f%%, RAM: %.2f%%, Disk: %.2f%%",
-				site, metrics.CPUUsage, metrics.RAMUsage, metrics.DiskUsage)
-			err = sendMetrics(config, metrics)
-			if err != nil {
+			log.Printf("Getting metrics for %s: CPU: %.2f%%, RAM: %.2f%%, Disk: %.2f%%", site, metrics.CPUUsage, metrics.RAMUsage, metrics.DiskUsage)
+			if err := sendMetrics(config, metrics); err != nil {
 				log.Printf("Error sending metrics for site %s: %v", site, err)
 			} else {
 				log.Printf("Metrics sent successfully for site %s", site)
@@ -265,4 +261,26 @@ func main() {
 		}
 		time.Sleep(5 * time.Minute) // Sending metrics every 5 minutes
 	}
+}
+
+func main() {
+	initLog()
+	defer logFile.Close()
+
+	// Arguments definitions
+	mode := flag.String("m", "", "operation mode: cpu, disk, memory")
+	flag.Parse()
+
+	// Execute binary as standalone
+	if *mode != "" {
+		executeMode(*mode)
+		return
+	}
+
+	// Load the config file
+	config, err := loadConfig(configFilePath)
+	if err != nil {
+		log.Fatalf("Error loading json config: %v", err)
+	}
+	runLoopAgent(config)
 }

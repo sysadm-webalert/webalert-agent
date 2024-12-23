@@ -2,5 +2,5 @@
   "email": "your_user",
   "password": "your_password",
   "api_uri": "https://api.webalert.digital",
-  "siteName": ["https://yoursite.com","https://yoursecond.com"]
+  "siteName": ["mysite1","mysite2"]
 }
