@@ -1,5 +1,5 @@
 # WebAlert Agent
-
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=sysadm-webalert_webalert-agent&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=sysadm-webalert_webalert-agent)
 ## Overview
 The WebAlert Agent is a lightweight monitoring tool designed to collect system metrics. It provides essential insights to ensure optimal system reliability and website uptime.
 
@@ -110,7 +110,9 @@ sudo tail -f /var/log/webalert-agent/agent.log
 ### Test Metrics Collection
 Run the binary directly to view metrics:
 ```bash
-webalert-agent --test
+webalert-agent -m cpu
+webalert-agent -m memory
+webalert-agent -m disk
 ```
 
 ## Contributing
