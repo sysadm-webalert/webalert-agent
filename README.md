@@ -17,7 +17,7 @@ The WebAlert Agent is a lightweight monitoring tool designed to collect system m
 - Go ^1.23.2 (for building from source)
 
 ### Using Prebuilt Package
-1. Download the latest `.deb` package from the [Releases](https://github.com/your-repo/webalert-agent/releases).
+1. Download the latest `.deb` package from the [Releases](https://github.com/sysadm-webalert/webalert-agent/releases).
 2. Install the package:
    ```bash
    sudo dpkg -i webalert-agent-latest.deb
@@ -28,36 +28,31 @@ The WebAlert Agent is a lightweight monitoring tool designed to collect system m
    ```
 
 ### Building from Source
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-repo/webalert-agent.git
-   cd webalert-agent
-   ```
-2. Init modules:
+1. Init modules:
    ```bash
    go mod init webalert-agent
-3. Install dependencies:
+2. Install dependencies:
    ```bash
    go get github.com/shirou/gopsutil/cpu
    go get github.com/shirou/gopsutil/mem
    go get github.com/shirou/gopsutil/disk
    go mod tidy
    ```
-4. Build the binary:
+3. Build the binary:
    ```bash
    go build -o ./usr/local/bin/webalert-agent main.go
    ```
-5. Copy the binary to `/usr/local/bin`:
+4. Copy the binary to `/usr/local/bin`:
    ```bash
    sudo cp webalert-agent /usr/local/bin/
    ```
-6. Set up the service:
+5. Set up the service:
    ```bash
    sudo cp webalert-agent.service /etc/systemd/system/
    sudo systemctl enable webalert-agent
    sudo systemctl start webalert-agent
    ```
-7. Create the directory for logging:
+6. Create the directory for logging:
    ```bash
    mkdir /var/log/webalert-agent
    ```
@@ -126,7 +121,7 @@ We welcome contributions! Please follow these steps:
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Support
-For issues or feature requests, please open an issue in the [GitHub repository](https://github.com/your-repo/webalert-agent/issues).
+For issues or feature requests, please open an issue in the [GitHub repository](https://github.com/sysadm-webalert/webalert-agent/issues).
 
 ---
 **WebAlert Agent** © 2024
